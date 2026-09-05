@@ -2,7 +2,7 @@ import uuid
 import json
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from backend.database import db
+from database import db
 
 
 def create_audit_entry(

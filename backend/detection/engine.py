@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
-from backend.database import db
+from database import db
 
 MERCHANT_ID = "mer_nexus_01"
 
@@ -197,7 +197,7 @@ def run_detection_engine() -> Dict[str, Any]:
             row["created_at"] = now.isoformat()
             db.insert("recovery_cases", row)
 
-    from backend.audit.logger import create_audit_entry
+    from audit.logger import create_audit_entry
     create_audit_entry(
         event_type="DETECTION",
         actor="DetectionEngine",

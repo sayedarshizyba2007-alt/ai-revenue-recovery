@@ -2,9 +2,9 @@ import uuid
 import random
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List
-from backend.database import db
-from backend.audit.logger import create_audit_entry
-from backend.intervention.engine import check_intervention_eligibility, INTERVENTION_POLICIES
+from database import db
+from audit.logger import create_audit_entry
+from intervention.engine import check_intervention_eligibility, INTERVENTION_POLICIES
 
 
 def execute_recovery_step(case_id: str, force_action: str = None) -> Dict[str, Any]:

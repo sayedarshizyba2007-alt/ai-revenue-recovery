@@ -2,7 +2,7 @@ import random
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
-from backend.database import db
+from database import db
 
 MERCHANT_ID = "mer_nexus_01"
 MERCHANT_NAME = "Nexus Pay Solutions"

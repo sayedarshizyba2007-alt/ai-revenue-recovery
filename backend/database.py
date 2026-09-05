@@ -4,7 +4,7 @@ import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
-from backend.config import settings
+from config import settings
 from supabase import create_client, Client
 
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -1,16 +1,24 @@
+import sys
+from pathlib import Path
+
+# Ensure backend directory is in sys.path for direct imports (Vercel & local compatibility)
+backend_dir = Path(__file__).resolve().parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 
-from backend.config import settings
-from backend.database import db
-from backend.seed import seed_synthetic_data
-from backend.detection.engine import run_detection_engine
-from backend.ai.gemini_service import diagnose_revenue_risk
-from backend.recovery.executor import execute_recovery_step, get_recovery_metrics
-from backend.audit.logger import create_audit_entry, fetch_audit_logs
-from backend.intervention.engine import INTERVENTION_POLICIES
+from config import settings
+from database import db
+from seed import seed_synthetic_data
+from detection.engine import run_detection_engine
+from ai.gemini_service import diagnose_revenue_risk
+from recovery.executor import execute_recovery_step, get_recovery_metrics
+from audit.logger import create_audit_entry, fetch_audit_logs
+from intervention.engine import INTERVENTION_POLICIES
 
 app = FastAPI(
     title="Razorpay AI Revenue Recovery Backend",

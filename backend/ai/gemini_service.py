@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import Dict, Any, List
-from backend.config import settings
+from config import settings
 
 logger = logging.getLogger("ai_diagnosis")
 
