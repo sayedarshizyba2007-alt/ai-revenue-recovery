@@ -34,7 +34,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
