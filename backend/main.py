@@ -6,7 +6,7 @@ backend_dir = Path(__file__).resolve().parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, Optional
 from datetime import datetime, timezone
@@ -35,8 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+api_router = APIRouter()
 
-@app.get("/health")
+
+@api_router.get("/health")
 def health_check():
     return {
         "status": "ok",
@@ -47,7 +49,7 @@ def health_check():
     }
 
 
-@app.get("/db/health")
+@api_router.get("/db/health")
 def db_health_check():
     return {
         "status": "ok",
@@ -56,7 +58,7 @@ def db_health_check():
     }
 
 
-@app.post("/seed")
+@api_router.post("/seed")
 def seed_data(reset: bool = Query(False, description="Whether to reset and re-seed clean 90-day dataset")):
     """Idempotently seed 90-day synthetic dataset with payment degradation and checkout abandonment."""
     try:
@@ -73,7 +75,7 @@ def seed_data(reset: bool = Query(False, description="Whether to reset and re-se
         raise HTTPException(status_code=500, detail=f"Failed to seed data: {str(e)}")
 
 
-@app.get("/dashboard/summary")
+@api_router.get("/dashboard/summary")
 def get_dashboard_summary():
     """Returns high-level summary KPIs and metrics for executive dashboard."""
     metrics = get_recovery_metrics()
@@ -89,14 +91,14 @@ def get_dashboard_summary():
     }
 
 
-@app.get("/risks")
+@api_router.get("/risks")
 def get_all_risks():
     """Returns all detected revenue at risk cases with calculated evidence."""
     detection_res = run_detection_engine()
     return detection_res
 
 
-@app.get("/risks/{risk_id}")
+@api_router.get("/risks/{risk_id}")
 def get_risk_detail(risk_id: str):
     """Returns specific risk details including live calculated evidence, breakdown metrics, case status, and audit trail."""
     detection_res = run_detection_engine()
@@ -126,7 +128,7 @@ def get_risk_detail(risk_id: str):
     }
 
 
-@app.post("/risks/{risk_id}/diagnose")
+@api_router.post("/risks/{risk_id}/diagnose")
 def diagnose_risk(risk_id: str):
     """Triggers AI diagnosis for a detected revenue risk using Gemini (or fallback)."""
     cases = db.fetch_all("recovery_cases", filters={"id": risk_id})
@@ -180,7 +182,7 @@ def diagnose_risk(risk_id: str):
     return diagnosis_res
 
 
-@app.post("/risks/{risk_id}/approve")
+@api_router.post("/risks/{risk_id}/approve")
 def approve_risk_recovery(risk_id: str):
     """Approves recovery intervention for a diagnosed case."""
     cases = db.fetch_all("recovery_cases", filters={"id": risk_id})
@@ -207,7 +209,7 @@ def approve_risk_recovery(risk_id: str):
     return {"status": "approved", "case": updated}
 
 
-@app.post("/risks/{risk_id}/execute")
+@api_router.post("/risks/{risk_id}/execute")
 def execute_risk_recovery(risk_id: str, action: Optional[str] = Query(None)):
     """Executes a bounded recovery attempt for an approved risk case."""
     try:
@@ -217,13 +219,13 @@ def execute_risk_recovery(risk_id: str, action: Optional[str] = Query(None)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/recovery/metrics")
+@api_router.get("/recovery/metrics")
 def recovery_metrics_endpoint():
     """Returns proven money recovered metrics."""
     return get_recovery_metrics()
 
 
-@app.get("/recovery/cases")
+@api_router.get("/recovery/cases")
 def list_recovery_cases():
     """Lists all recovery cases and execution history."""
     cases = db.fetch_all("recovery_cases")
@@ -233,14 +235,14 @@ def list_recovery_cases():
     return {"cases": cases, "total_attempts": len(attempts)}
 
 
-@app.get("/audit")
+@api_router.get("/audit")
 def list_audit_trail(limit: int = 100):
     """Returns complete auditable event log."""
     logs = fetch_audit_logs(limit=limit)
     return {"logs": logs, "total_logs": len(logs)}
 
 
-@app.get("/checkout/abandonment")
+@api_router.get("/checkout/abandonment")
 def get_checkout_abandonment_analytics():
     """Returns detailed checkout session abandonment analytics."""
     checkouts = db.fetch_all("checkout_sessions")
@@ -270,7 +272,7 @@ def get_checkout_abandonment_analytics():
     }
 
 
-@app.get("/payments/degradation")
+@api_router.get("/payments/degradation")
 def get_payment_degradation_analytics():
     """Returns detailed payment failure rate analytics."""
     txns = db.fetch_all("transactions")
@@ -303,3 +305,8 @@ def get_payment_degradation_analytics():
         "by_payment_method": by_method,
         "by_failure_reason": by_reason
     }
+
+
+# Mount API router under both /api (for Vercel deployment) and root / (for local dev)
+app.include_router(api_router, prefix="/api")
+app.include_router(api_router)
