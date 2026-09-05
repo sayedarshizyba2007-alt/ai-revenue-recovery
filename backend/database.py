@@ -77,7 +77,7 @@ class DatabaseService:
             "merchants"
         ]
 
-        if self._mode == "SUPABASE_POSTGRES" and self._supabase_client:
+        if self._mode in ("SUPABASE", "SUPABASE_POSTGRES") and self._supabase_client:
             for table in tables:
                 try:
                     self._supabase_client.table(table).delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
@@ -95,7 +95,7 @@ class DatabaseService:
         if not rows:
             return
 
-        if self._mode == "SUPABASE_POSTGRES" and self._supabase_client:
+        if self._mode in ("SUPABASE", "SUPABASE_POSTGRES") and self._supabase_client:
             # Batch insert in chunks of 500
             chunk_size = 500
             for i in range(0, len(rows), chunk_size):
@@ -120,7 +120,7 @@ class DatabaseService:
 
     def fetch_all(self, table: str, filters: Optional[Dict[str, Any]] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Fetch records from a table with optional exact-match filters and limit."""
-        if self._mode == "SUPABASE_POSTGRES" and self._supabase_client:
+        if self._mode in ("SUPABASE", "SUPABASE_POSTGRES") and self._supabase_client:
             query = self._supabase_client.table(table).select("*")
             if filters:
                 for k, v in filters.items():
@@ -155,7 +155,7 @@ class DatabaseService:
 
     def update(self, table: str, row_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update a row by ID."""
-        if self._mode == "SUPABASE_POSTGRES" and self._supabase_client:
+        if self._mode in ("SUPABASE", "SUPABASE_POSTGRES") and self._supabase_client:
             res = self._supabase_client.table(table).update(updates).eq("id", row_id).execute()
             return res.data[0] if res.data else None
         else:
